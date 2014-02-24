@@ -1,0 +1,45 @@
+---
+# Install newrelic server monitoring tool
+
+- name: install pycurl
+  sudo: yes
+  apt: pkg=python-pycurl state=present
+  tags: newrelic
+
+- name: add new relic apt repository
+  sudo: yes
+  apt_repository: repo='deb http://apt.newrelic.com/debian/ newrelic non-free' state=present
+  tags: newrelic
+
+- name: add new relic key
+  sudo: yes
+  apt_key: url=https://download.newrelic.com/548C16BF.gpg state=present
+  tags: newrelic
+
+- name: install newrelic-sysmond
+  sudo: yes
+  apt: pkg=newrelic-sysmond update_cache=yes
+  tags: newrelic
+
+- name: set new relic license key
+  sudo: yes
+  lineinfile: regexp="license_key=" line="license_key={{ newrelic_license_key }}" dest=/etc/newrelic/nrsysmond.cfg
+  tags: newrelic
+
+- name: ensure newrelic-sysmond is started
+  sudo: yes
+  service: name=newrelic-sysmond state=started
+  tags: newrelic
+
+- name: check if monit conf.d path exists
+  stat: path=/etc/monit/conf.d
+  register: check_monit
+  tags: newrelic
+
+- name: monitize newrelic-sysmond
+  sudo: yes
+  template: src=monit.conf dest=/etc/monit/conf.d/newrelic-sysmond owner=root group=root mode=0644
+  notify: 
+    - restart monit
+  when: check_monit.stat.exists
+  tags: newrelic
