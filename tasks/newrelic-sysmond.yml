@@ -1,0 +1,57 @@
+---
+
+- name: install pycurl
+  apt:
+    pkg: python-pycurl
+    state: present
+    update_cache: yes
+  tags: newrelic
+
+- name: add new relic apt repository
+  apt_repository:
+    repo: "{{ newrelic_apt_repository }}"
+    state: present
+  tags: newrelic
+
+- name: add new relic key
+  apt_key:
+    url: "https://download.newrelic.com/{{ newrelic_apt_key }}.gpg"
+    state: present
+  tags: newrelic
+
+- name: install newrelic-sysmond
+  apt:
+    pkg: newrelic-sysmond
+    update_cache: yes
+  tags: newrelic
+
+- name: set new relic license key
+  lineinfile:
+    regexp: "license_key="
+    line: "license_key={{ newrelic_license_key }}"
+    dest: /etc/newrelic/nrsysmond.cfg
+  tags: newrelic
+
+- name: ensure newrelic-sysmond is started
+  service:
+    name: newrelic-sysmond
+    state: started
+  tags: newrelic
+
+- name: check if monit conf.d path exists
+  stat:
+    path: /etc/monit/conf.d
+  register: check_monit
+  tags: newrelic
+
+- name: monitize newrelic-sysmond
+  template:
+    src: monit-newrelic-sysmond.conf
+    dest: /etc/monit/conf.d/newrelic-sysmond
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - restart monit
+  when: check_monit.stat.exists
+  tags: newrelic

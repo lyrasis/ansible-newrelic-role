@@ -1,0 +1,54 @@
+---
+
+- name: set selections for newrelic-php5
+  debconf:
+    name: newrelic-php5
+    question: "{{ item.question }}"
+    value: "{{ item.answer }}"
+    vtype: string
+  with_items:
+    -
+      question: newrelic-php5/application-name
+      answer: "{{ newrelic_php_name }}"
+    -
+      question: newrelic-php5/license-key
+      answer: "{{ newrelic_license_key }}"
+  when: newrelic_php_install
+  tags: newrelic
+
+- name: install newrelic-php5
+  apt:
+    pkg: newrelic-php5
+    update_cache: yes
+  when: newrelic_php_install
+  tags: newrelic
+
+- name: create the newrelic.cfg
+  lineinfile:
+    dest: /etc/newrelic/newrelic.cfg
+    line: "#"
+    state: present
+    create: yes
+  when: newrelic_php_install
+  notify:
+    - "restart {{ newrelic_php_webserver }}"
+  tags: newrelic
+
+- name: ensure newrelic-daemon is started
+  service:
+    name: newrelic-daemon
+    state: started
+  tags: newrelic
+
+- name: monitize newrelic-daemon
+  template:
+    src: monit-newrelic-daemon.conf
+    dest: /etc/monit/conf.d/newrelic-daemon
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - restart monit
+  # check_monit occurs during newrelic-sysmond
+  when: check_monit.stat.exists and newrelic_php_install
+  tags: newrelic
