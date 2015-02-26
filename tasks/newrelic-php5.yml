@@ -28,7 +28,7 @@
     state: present
     create: yes
   notify:
-    - "restart {{ newrelic_php_webserver }}"
+    - restart apache
   tags: newrelic
 
 - name: ensure newrelic-daemon is started

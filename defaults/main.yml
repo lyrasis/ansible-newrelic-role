@@ -10,5 +10,5 @@ newrelic_php_install: false
 # name for php application in newrelic
 newrelic_php_name: ""
 
-# used to restart the "parent" server for php applications
-newrelic_php_webserver: apache
+# used to restart the "parent" server for php applications [TODO]
+# newrelic_php_webserver: apache
