@@ -13,14 +13,12 @@
     -
       question: newrelic-php5/license-key
       answer: "{{ newrelic_license_key }}"
-  when: newrelic_php_install
   tags: newrelic
 
 - name: install newrelic-php5
   apt:
     pkg: newrelic-php5
     update_cache: yes
-  when: newrelic_php_install
   tags: newrelic
 
 - name: create the newrelic.cfg
@@ -29,7 +27,6 @@
     line: "#"
     state: present
     create: yes
-  when: newrelic_php_install
   notify:
     - "restart {{ newrelic_php_webserver }}"
   tags: newrelic
