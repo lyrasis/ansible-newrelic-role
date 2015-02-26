@@ -2,44 +2,80 @@
 # Install newrelic server monitoring tool
 
 - name: install pycurl
-  sudo: yes
-  apt: pkg=python-pycurl state=present
+  apt:
+    pkg: python-pycurl
+    state: present
+    update_cache: yes
   tags: newrelic
 
 - name: add new relic apt repository
-  sudo: yes
-  apt_repository: repo='deb http://apt.newrelic.com/debian/ newrelic non-free' state=present
+  apt_repository:
+    repo: "{{ newrelic_apt_repository }}"
+    state: present
   tags: newrelic
 
 - name: add new relic key
-  sudo: yes
-  apt_key: url=https://download.newrelic.com/548C16BF.gpg state=present
+  apt_key:
+    url: "https://download.newrelic.com/{{ newrelic_apt_key }}.gpg"
+    state: present
   tags: newrelic
 
 - name: install newrelic-sysmond
-  sudo: yes
-  apt: pkg=newrelic-sysmond update_cache=yes
+  apt:
+    pkg: newrelic-sysmond
+    update_cache: yes
   tags: newrelic
 
 - name: set new relic license key
-  sudo: yes
-  lineinfile: regexp="license_key=" line="license_key={{ newrelic_license_key }}" dest=/etc/newrelic/nrsysmond.cfg
+  lineinfile:
+    regexp: "license_key="
+    line: "license_key={{ newrelic_license_key }}"
+    dest: /etc/newrelic/nrsysmond.cfg
   tags: newrelic
 
 - name: ensure newrelic-sysmond is started
-  sudo: yes
-  service: name=newrelic-sysmond state=started
+  service:
+    name: newrelic-sysmond
+    state: started
   tags: newrelic
 
 - name: check if monit conf.d path exists
-  stat: path=/etc/monit/conf.d
+  stat:
+    path: /etc/monit/conf.d
   register: check_monit
   tags: newrelic
 
 - name: monitize newrelic-sysmond
-  sudo: yes
-  template: src=monit.conf dest=/etc/monit/conf.d/newrelic-sysmond owner=root group=root mode=0644
-  notify: 
+  template:
+    src: monit.conf
+    dest: /etc/monit/conf.d/newrelic-sysmond
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
     - restart monit
   when: check_monit.stat.exists
+  tags: newrelic
+
+- name: set selections for newrelic-php5
+  debconf:
+    name: newrelic-php5
+    question: "{{ item.question }}"
+    value: "{{ item.answer }}"
+    vtype: string
+  with_items:
+    -
+      question: newrelic-php5/application-name
+      answer: "{{ newrelic_php_name }}"
+    -
+      question: newrelic-php5/license-key
+      answer: "{{ newrelic_license_key }}"
+  when: newrelic_php_install
+  tags: newrelic
+
+- name: install newrelic-php5
+  apt:
+    pkg: newrelic-php5
+    update_cache: yes
+  when: newrelic_php_install
   tags: newrelic
