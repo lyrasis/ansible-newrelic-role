@@ -5,6 +5,7 @@
     pkg: python-pycurl
     state: present
     update_cache: yes
+    cache_valid_time: 3600
   tags: newrelic
 
 - name: add new relic apt repository
@@ -23,6 +24,7 @@
   apt:
     pkg: newrelic-sysmond
     update_cache: yes
+    cache_valid_time: 3600
   tags: newrelic
 
 - name: set new relic license key
@@ -55,3 +57,4 @@
     - restart monit
   when: check_monit.stat.exists
   tags: newrelic
+

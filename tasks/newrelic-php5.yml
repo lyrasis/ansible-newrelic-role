@@ -19,6 +19,7 @@
   apt:
     pkg: newrelic-php5
     update_cache: yes
+    cache_valid_time: 3600
   tags: newrelic
 
 - name: create the newrelic.cfg
@@ -49,3 +50,4 @@
   # check_monit occurs during newrelic-sysmond
   when: check_monit.stat.exists and newrelic_php_install
   tags: newrelic
+
