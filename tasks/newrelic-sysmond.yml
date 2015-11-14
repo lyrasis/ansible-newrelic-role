@@ -25,6 +25,7 @@
     pkg: newrelic-sysmond
     update_cache: yes
     cache_valid_time: 3600
+    force: yes
   tags: newrelic
 
 - name: set new relic license key
