@@ -1,7 +1,7 @@
 ---
 # Install newrelic server monitoring tool
 
-- include: newrelic-sysmond.yml
+- import_tasks: newrelic-sysmond.yml
 
-- include: newrelic-php5.yml
+- import_tasks: newrelic-php5.yml
   when: newrelic_php_install
